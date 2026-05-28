@@ -139,7 +139,7 @@ function animate() {
     ctx.shadowColor = '#ff4da6';
     
     // Ubicado exactamente en la mitad de la pantalla
-    ctx.fillText("TE AMO", canvas.width / 2, canvas.height / 2 - 20);
+    ctx.fillText("Pornhub", canvas.width / 2, canvas.height / 2 - 20);
     ctx.restore();
 
     requestAnimationFrame(animate);
