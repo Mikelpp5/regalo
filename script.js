@@ -11,10 +11,11 @@ window.addEventListener('resize', resizeCanvas);
 const particles = [];
 const particleCount = 500; 
 
-// Fases de la animación: "appearing" (apareciendo), "floating" (flotando/brillando), "collapsing" (metiéndose hacia dentro)
+// Fases de la animación: "appearing", "floating", "collapsing"
 let animationPhase = "appearing"; 
 let phaseTimer = 0;
 
+// Función matemática para calcular la forma de corazón
 function getHeartPoint(t) {
     return {
         x: 16 * Math.pow(Math.sin(t), 3),
@@ -32,14 +33,14 @@ class Particle {
         const basePoint = getHeartPoint(this.t);
         const scale = Math.min(canvas.width, canvas.height) / 35; 
         
-        // El centro de nuestro corazón
+        // Centro del corazón en pantalla
         this.centerX = canvas.width / 2;
         this.centerY = canvas.height / 2 - 20; 
 
         this.targetX = this.centerX + basePoint.x * scale;
         this.targetY = this.centerY + basePoint.y * scale;
         
-        // Empiezan dispersas en el centro para la fase de aparición
+        // Empiezan dispersas cerca del centro
         this.x = this.centerX + (Math.random() - 0.5) * 50;
         this.y = this.centerY + (Math.random() - 0.5) * 50;
         
@@ -52,13 +53,13 @@ class Particle {
 
     update() {
         if (animationPhase === "appearing") {
-            // Las partículas viajan desde el centro hacia la silueta del corazón
+            // Viajan hacia afuera formando el corazón
             this.x += (this.targetX - this.x) * 0.05;
             this.y += (this.targetY - this.y) * 0.05;
             if (this.alpha < 1) this.alpha += 0.02;
 
         } else if (animationPhase === "floating") {
-            // Vibración normal del corazón cuando ya está formado
+            // El corazón tiembla/brilla de forma normal
             this.x += this.speedX;
             this.y += this.speedY;
 
@@ -69,10 +70,9 @@ class Particle {
             if (this.alpha > 1 || this.alpha < 0.3) this.alphaSpeed *= -1;
 
         } else if (animationPhase === "collapsing") {
-            // ¡Magia! Se meten con fuerza hacia el centro exacto de la pantalla
+            // Se absorben hacia el centro exacto y desaparecen
             this.x += (this.centerX - this.x) * 0.08;
             this.y += (this.centerY - this.y) * 0.08;
-            // Se van desvaneciendo mientras se encogen
             this.alpha -= 0.02;
             if (this.size > 0.1) this.size -= 0.05;
         }
@@ -82,9 +82,9 @@ class Particle {
         if (this.alpha <= 0) return;
         ctx.save();
         ctx.globalAlpha = this.alpha;
-        ctx.fillStyle = '#ff4da6';
+        ctx.fillStyle = '#ff4da6'; // Color rosa brillante para los puntitos
         ctx.shadowBlur = 12;
-        ctx.shadowColor = '#ff4da6';
+        ctx.shadowColor = '#ff4da6'; // Efecto neón rosa
         
         ctx.beginPath();
         ctx.arc(this.x, this.y, Math.max(0, this.size), 0, Math.PI * 2);
@@ -93,52 +93,51 @@ class Particle {
     }
 }
 
-// Inicializar partículas
+// Inicializar la lista de puntitos
 for (let i = 0; i < particleCount; i++) {
     particles.push(new Particle());
 }
 
 function animate() {
-    ctx.fillStyle = 'rgba(26, 0, 16, 0.25)'; // Mantiene el rastro luminoso
+    // Fondo con rastro para el efecto de movimiento difuminado
+    ctx.fillStyle = 'rgba(26, 0, 16, 0.25)'; 
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Control de tiempos para las fases del bucle
+    // Gestor del temporizador de fases
     phaseTimer++;
     if (animationPhase === "appearing" && phaseTimer > 80) {
         animationPhase = "floating";
         phaseTimer = 0;
-    } else if (animationPhase === "floating" && phaseTimer > 200) { // Tiempo que se queda brillando
+    } else if (animationPhase === "floating" && phaseTimer > 200) { 
         animationPhase = "collapsing";
         phaseTimer = 0;
     } else if (animationPhase === "collapsing" && phaseTimer > 60) {
-        // Reiniciar todo para que vuelva a empezar el ciclo
         animationPhase = "appearing";
         phaseTimer = 0;
         particles.forEach(p => p.reset());
     }
 
-    // Dibujar partículas
+    // Dibujar y actualizar partículas
     particles.forEach(particle => {
         particle.update();
         particle.draw();
     });
 
-    // --- CORRECCIÓN DEL TEXTO ---
-    // Colocamos el texto justo en el centro del corazón para que no estorbe abajo
+    // --- TEXTO "TE AMO" EN ROSA ---
     ctx.save();
     
-    // El texto también aparece y desaparece según la fase del corazón
-    if (animationPhase === "appearing") ctx.globalAlpha = phaseTimer / 80;
-    if (animationPhase === "collapsing") ctx.globalAlpha = 1 - (phaseTimer / 60);
+    // Efecto de desvanecimiento del texto coordinado con el corazón
+    if (animationPhase === "appearing") ctx.globalAlpha = Math.min(1, phaseTimer / 80);
+    if (animationPhase === "collapsing") ctx.globalAlpha = Math.max(0, 1 - (phaseTimer / 60));
     
-    ctx.fillStyle = '#ffffff'; // Blanco puro para que resalte más
+    ctx.fillStyle = '#ff4da6'; // Cambiado a rosa brillante como pediste
     ctx.font = 'bold 2.8rem Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.shadowBlur = 20;
-    ctx.shadowColor = '#ff4da6';
+    ctx.shadowColor = '#ff4da6'; // Resplandor rosa
     
-    // Ubicado exactamente en la mitad de la pantalla
+    // Centrado perfecto en medio del corazón
     ctx.fillText("TE AMO", canvas.width / 2, canvas.height / 2 - 20);
     ctx.restore();
 
